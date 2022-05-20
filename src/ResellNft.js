@@ -2,12 +2,12 @@
 import { useEffect, useState } from 'react'
 import { ethers } from 'ethers'
 import { useSearchParams } from 'react-router-dom'
-import Web3Modal from 'web3modal'
+import Web3Modal from 'web3modal';
 
 import { useNavigate } from "react-router-dom";
 
 import {
-  marketplaceAddress, coinName
+  marketplaceAddress, coinName, providerOptions
 } from './config'
 
 import NFTMarketplace from './artifacts/contracts/NFTMarketplace.sol/NFTMarketplace.json'
@@ -56,7 +56,11 @@ function ResellNft() {
         setButtonDisabledStatus(true)
 
         setFormStatus("wallet")
-        const web3Modal = new Web3Modal()
+        const web3Modal = new Web3Modal({
+          network: "mumbai", // optional
+          cacheProvider: false, // optional
+          providerOptions // required
+        });
         const connection = await web3Modal.connect()
         const provider = new ethers.providers.Web3Provider(connection)
         const signer = provider.getSigner()

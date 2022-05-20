@@ -1,12 +1,12 @@
 import { ethers } from 'ethers'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
-import Web3Modal from 'web3modal'
+import Web3Modal from 'web3modal';
 
 import { useNavigate } from "react-router-dom";
 
 import {
-  marketplaceAddress, coinName
+  marketplaceAddress, coinName, ipfsGateway, providerOptions
 } from './config'
 
 import NFTMarketplace from './artifacts/contracts/NFTMarketplace.sol/NFTMarketplace.json'
@@ -26,19 +26,9 @@ function MyNfts() {
 
   async function loadMyNFTs() {
     setLoadingState('not-loaded');
-    const providerOptions = {
-      binancechainwallet: {
-        package: true
-      },
-      boltx: {
-        package: true
-      }
-    };
     const web3Modal = new Web3Modal({
-      network: "mainnet",
-      cacheProvider: false,
-      providerOptions: providerOptions
-    })
+      providerOptions // required
+    });
     const connection = await web3Modal.connect()
     const provider = new ethers.providers.Web3Provider(connection)
     const signer = provider.getSigner()
@@ -53,7 +43,7 @@ function MyNfts() {
       const tokenUri = await contract.tokenURI(i.tokenId)
       // console.log("tokenUri", tokenUri)
       // Se puede hacer mas elegante con https://docs.pinata.cloud/gateways/ipfs-gateway-tools
-      const url = tokenUri.replace("ipfs://", "https://gateway.pinata.cloud/ipfs/")
+      const url = tokenUri.replace("ipfs://", ipfsGateway + "/ipfs/")
       // console.log("url", url)
 
       const metadata = await axios.get(url)
@@ -65,7 +55,7 @@ function MyNfts() {
       let item = {
         price,
         tokenId: i.tokenId.toNumber(),
-        image: imageUri.replace("ipfs://", "https://gateway.pinata.cloud/ipfs/"),
+        image: imageUri.replace("ipfs://", ipfsGateway + "/ipfs/"),
         name: metadata.data.name,
         description: metadata.data.description,
       }

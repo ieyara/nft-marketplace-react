@@ -4,7 +4,7 @@ import axios from 'axios'
 import Web3Modal from 'web3modal'
 
 import {
-  marketplaceAddress, mumbaiRpcUrl, coinName
+  marketplaceAddress, mumbaiRpcUrl, coinName, ipfsGateway, providerOptions
 } from './config'
 
 import NFTMarketplace from './artifacts/contracts/NFTMarketplace.sol/NFTMarketplace.json'
@@ -39,7 +39,7 @@ function Home() {
       const tokenUri = await contract.tokenURI(i.tokenId)
       // console.log("tokenUri", tokenUri)
       // Se puede hacer mas elegante con https://docs.pinata.cloud/gateways/ipfs-gateway-tools
-      const url = tokenUri.replace("ipfs://", "https://gateway.pinata.cloud/ipfs/")
+      const url = tokenUri.replace("ipfs://", ipfsGateway + "/ipfs/")
       // console.log("url", url)
 
       const metadata = await axios.get(url)
@@ -53,7 +53,7 @@ function Home() {
         tokenId: i.tokenId.toNumber(),
         seller: i.seller,
         owner: i.owner,
-        image: imageUri.replace("ipfs://", "https://gateway.pinata.cloud/ipfs/"),
+        image: imageUri.replace("ipfs://", ipfsGateway + "/ipfs/"),
         name: metadata.data.name,
         description: metadata.data.description,
       }
@@ -66,9 +66,14 @@ function Home() {
   async function buyNft(nft, index) {
     setSelectedNft(index);
     /* needs the user to sign the transaction, so will use Web3Provider and sign it */
-    setButtonDisabledStatus(true)
-    const web3Modal = new Web3Modal()
-    const connection = await web3Modal.connect()
+    setButtonDisabledStatus(true);
+    const web3Modal = new Web3Modal({
+      network: "mumbai", // optional
+      cacheProvider: false, // optional
+      providerOptions // required
+    });
+
+    const connection = await web3Modal.connect();
     const provider = new ethers.providers.Web3Provider(connection)
     const signer = provider.getSigner()
     const contract = new ethers.Contract(marketplaceAddress, NFTMarketplace.abi, signer)
@@ -157,7 +162,7 @@ function BtnWallet(){
   return(
     <>
       <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-      <span className="sr-only">Billetera...</span>
+      <span className="sr-only"> Billetera...</span>
     </>
   )
 }
@@ -166,7 +171,7 @@ function BtnBlockchain(){
   return(
     <>
       <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-      <span className="sr-only">Transacción...</span>
+      <span className="sr-only"> Transacción...</span>
     </>
   )
 }
